@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <title>
+
+    </title>
+    <script src="https://cdn.jsdelivr.net/npm/phaser@3.11.0/dist/phaser.js"></script>
+  </head>
+  <body>
+    <script type="text/javascript">
+    var config = {
+        type: Phaser.AUTO,
+        width: 1700,
+        height: 1200,
+        physics: {
+            default: 'arcade',
+            arcade: {
+                gravity: { y: 300 },
+                debug: false
+            }
+        },
+        scene: {
+            preload: preload,
+            create: create,
+            update: update
+        }
+    };
+
+    var game = new Phaser.Game(config);
+
+    var Maze;
+    var Player;
+    var theArrowKeys;
+    //var StarRain1, StarRain2, StarRain3;
+    //var HellBombs;
+    //var Score = 0;
+    var objectiveText;
+    //var gameOver = false;
+    var youWin;
+    var appleWin;
+
+    function preload ()
+    {
+      this.load.image("SkyBackground", "Assets/Terrain/sky1.png");
+      this.load.image("BushMazeH", "Assets/Terrain/Horizontal Bush Fence.png");
+      this.load.image("BushMazeV", "Assets/Terrain/Vertical Bush Fence.png");
+      this.load.image("Apple", "Assets/Objects/apple.png");
+      //this.load.image("Bombee", "Assets/Objects/bomb.png");
+      this.load.spritesheet("Horse", "Assets/Character/horse-brown.png", {frameWidth: 64,frameHeight: 64});
+    }
+
+    function create ()
+    {
+      //Background
+      this.add.image(0, 0, "SkyBackground").setOrigin(0, 0);
+
+      //Platforms
+      Maze = this.physics.add.staticGroup();
+      Maze.create(200, 600, "BushMazeH");
+
+      //Player Creation
+      Player = this.physics.add.sprite(450, 600, "Horse");
+      Player.setBounce(0.2);
+      Player.setCollideWorldBounds(true);
+      //Player.body.setGravityY(-300);
+      this.physics.add.collider(Player, Maze);
+      theArrowKeys = this.input.keyboard.createCursorKeys();
+
+      //Player Animation Movements
+      this.anims.create
+      ({
+        key: "left",
+        frames: this.anims.generateFrameNumbers("Horse", {start: 9, end: 11}),
+        frameRate: 10,
+        repeat: -1
+      });
+      this.anims.create
+      ({
+        key: "turn",
+        frames: [ { key: "Horse", frame: 8 } ],
+        frameRate: 20
+      });
+      this.anims.create
+      ({
+        key: "right",
+        frames: this.anims.generateFrameNumbers("Horse", { start: 3, end: 5 }),
+        frameRate: 10,
+        repeat: -1
+      });
+      this.anims.create
+      ({
+        key: "up",
+        frames: this.anims.generateFrameNumbers("Horse", { start: 0, end: 2 }),
+        frameRate: 10,
+        repeat: -1
+      });
+      this.anims.create
+      ({
+        key: "down",
+        frames: this.anims.generateFrameNumbers("Horse", { start: 6, end: 8 }),
+        frameRate: 10,
+        repeat: -1
+      });
+
+      //Star Groups
+      /*StarRain1 = this.physics.add.group //Stars
+      ({
+        key: 'Starr',
+        repeat: 7,
+        setXY: { x: 12, y: 150, stepX: 140, stepY: 0}
+      });
+      StarRain1.children.iterate(function (child)
+      {
+        child.setBounceY(Phaser.Math.FloatBetween(0.5, 0.8));
+      });
+      this.physics.add.collider(StarRain1, Platform);
+      this.physics.add.overlap(Player, StarRain1, collectStarr, null, this);*/
+
+      //Bombs
+      /*HellBombs = this.physics.add.group();
+      this.physics.add.collider(HellBombs, Platform);
+      this.physics.add.collider(Player, HellBombs, hitBomb, null, this);*/
+
+      //Apple
+      appleWin = this.physics.add.image(1300, 10, "Apple").setOrigin(0, 0);
+      appleWin.setBounce(0.8);
+      appleWin = this.physics.add.collider("Apple", Maze);
+
+      //Score
+      objectiveText = this.add.text(16, 16, "Find a way to get the apple.", {fontSize: "32px", fill: "#000"});
+      youWin = this.add.text(850, 140, "", {fontSize: "40px", fill: "#000"});
+    }
+
+    function update ()
+    {
+      //Player Movements
+      if(theArrowKeys.left.isDown) //Going left
+      {
+        Player.setVelocityX(-160);
+        Player.anims.play("left", true);
+      }
+      else if(theArrowKeys.right.isDown) //Going right
+      {
+        Player.setVelocityX(160);
+        Player.anims.play("right", true);
+      }
+      else if(theArrowKeys.up.isDown)
+      {
+        Player.setVelocityY(-160);
+        Player.anims.play("up", true);
+      }
+      else if(theArrowKeys.down.isDown)
+      {
+        Player.setVelocityY(160);
+        Player.anims.play("down", true);
+      }
+      else //Stopping
+      {
+        Player.setVelocityX(0);
+        Player.anims.play("turn");
+      }
+      /*if(theArrowKeys.up.isDown && Player.body.touching.down) //Jumping
+      {
+        Player.setVelocityY(-370);
+      }*/
+    }
+    //Apple Collector
+    function collectApple(Player, Apple)
+    {
+      Apple.disableBody(true, true);
+      youWin.setText("You Win!");
+
+      /*if(StarRain1.countActive(true) === 8, 6, 4, 2)
+      {
+      var x1 = (Player.x < 400) ? Phaser.Math.Between(400, 800) : Phaser.Math.Between(0, 1024);
+      var Bomb1 = HellBombs.create(x1, 16, "Bombee");
+      Bomb1.setBounce(1);
+      Bomb1.setCollideWorldBounds(true);
+      Bomb1.setVelocity(Phaser.Math.Between(-200, 200), 20);
+      Bomb1.allowGravity = false;
+      }*/
+    }
+    </script>
+  </body>
+</html>
